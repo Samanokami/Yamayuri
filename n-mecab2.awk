@@ -1,14 +1,13 @@
 #Unidicで形態素解析したデータを、直接、N-gramと品詞に分割する
-
 function joint(){
 	pre_item = gram_tail-n+1
 	for(item=gram_tail-n+1;item<=gram_tail;item++){
 	#gramの先頭から最後尾まで
 	#gramの先頭の初期値はposition、もしくはpre_itemの初期値
 		if(w_array2[stid,item]!=""){
-			kind = kind w_array2[stid,item] "+"
+			kind = kind w_array2[stid,item] morph_sep
 			#形態素情報を数珠つなぎ
-			keyword = keyword substr(sentence[stid],pre_item,item-pre_item+1) "+"
+			keyword = keyword substr(sentence[stid],pre_item,item-pre_item+1) mora_sep
 			#形態素を数珠つなぎ
 			key_length += item-pre_item+1
 			#これまで何文字処理したかの合計
@@ -25,41 +24,112 @@ function initialize(){
 	w_tail = ""
 	#変数の初期化
 }
-
-BEGIN{
-	FS="\t"
-	OFS=","
-	sid=0
+function set_gram(){
 	print "Please set Minimum Gram"
 	getline min <"-"
 	print "Please set Maximum Gram"
 	getline max <"-"
 }
+function input(mode){
+	#原文ママ、もしくはカナモードの選択
+	if(mode==1){
+		val = $3
+	}else if(mode==2){
+		if($4!=""){
+			val = $4
+		}else{
+		#ヨミ出現形では記号が空白
+		#出現形を利用する
+			val = $3
+		}
+	}
+	one_sentence = one_sentence val
+	w_tail += length(val)
+	#形態素の先頭からの区切り位置
+
+	w_array1[sid,w_tail] = length(val)
+	#形態素の字数
+
+	w_array2[sid,w_tail] = $7
+	#形態素の品詞情報
+}
+
+BEGIN{
+	FS="\t"
+	OFS=","
+	sid=0
+	print "Set Mora Separator"
+	getline mora_sep <"-"
+	if(mora_sep==""){
+		mora_sep = "/"
+	}
+	print "Set Morpheme Separator"
+	getline morph_sep <"-"
+	if(morph_sep==""){
+		morph_sep = "/"
+	}
+	#区切り子の設定
+	#何も入力されなかった場合はスラッシュを設定
+
+	print "Text:1 or Kana:2"
+	getline mode <"-"
+	while(mode!=""&&mode!=1&&mode!=2){
+	#適切な値が入力されているかどうか
+		print "Error!"
+		getline mode <"-"
+	}
+	if(mode==""){
+		mode = 1
+	}
+	#何も入力されなかった場合はテキストモードを設定
+
+	set_gram()
+	if(min==""){
+		if(max==""){
+			min = 1
+			max = 10
+		}else{
+			min = max
+		}
+	}else if(max=""){
+		max = min
+	}
+	#いずれの値にも入力されなかった場合は1~10gramを設定
+	#一方の値のみ入力された場合は同値を設定
+	while(min>max){
+		print "Error!"
+		print "Small to Large"
+		set_gram()
+	}
+	#適切な値が入力されているかどうか
+
+	if(mode==1){
+		print "Text Mode"
+	}else{
+		print "Kana Mode"
+	}
+	print "Mora Separator:" mora_sep
+	print "Morpheme Separator:" morph_sep
+	if(min<max){
+		print min "gram to " max "gram"
+	}else{
+		print min "gram"
+	}
+	#設定値の表示
+	print
+	#データ本体との改行
+}
+
 {
 	if($2 == "B"){
 		sentence[sid] = one_sentence
 		one_sentence = ""
+		w_tail = ""
 		sid ++
+		input(mode)
 		
-		one_sentence = $3
-		w_tail = length($3)
-		#形態素の先頭からの区切り位置
-
-		w_array1[sid,w_tail] = length($3)
-		#形態素の字数
-
-		w_array2[sid,w_tail] = $7
-		#形態素の品詞情報
 	}else if($2 =="I"){
-		one_sentence = one_sentence $3
-		w_tail += length($3)
-		#形態素の先頭からの区切り位置
-
-		w_array1[sid,w_tail] = length($3)
-		#形態素の字数
-
-		w_array2[sid,w_tail] = $7
-		#形態素の品詞情報
+		input(mode)
 	}
 }
 
@@ -84,9 +154,9 @@ END{
 					#gram数が形態素の文字数より長い場合
 					#gramは複数の形態素から構成されている
 						joint()
-						sub(/+$/,"",kind)
-						sub(/+$/,"",keyword)
-						#数珠つなぎの最後の区切り記号ハイフンを削る
+						sub(morph_sep"$","",kind)
+						sub(mora_sep"$","",keyword)
+						#数珠つなぎの最後の区切り記号を削る
 						print keyword,kind
 						initialize()
 						}
