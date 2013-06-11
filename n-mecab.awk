@@ -209,8 +209,10 @@ BEGIN{
 					#gram数が形態素の文字数より短い場合
 					#gramは一つの形態素から構成されている
 					#3gramで「フロイト」
-						print substr(sentence,position,n),w_array2[gram_tail]
+					#	print substr(sentence,position,n),w_array2[gram_tail]
 						#gramの単純出力と対応する形態素情報の出力
+					arr_item = keyword OFS part
+					s_array[arr_item]++
 					}else{
 					#gram数が形態素の文字数より長い場合
 					#gramは複数の形態素から構成されている
@@ -219,7 +221,9 @@ BEGIN{
 						sub(part_sep"$","",part)
 						sub(gram_sep"$","",keyword)
 						#数珠つなぎの最後の区切り記号を削る
-						print keyword,part
+					#	print keyword,part
+					arr_item = keyword OFS part
+					s_array[arr_item]++
 						initialize()
 					}
 				}else{
@@ -233,7 +237,9 @@ BEGIN{
 					keyword = keyword substr(sentence,pre_item,n-key_length)
 					#含まれる最後の形態素（gramには途中まで）の追加
 					#処理済みの文字数を控除
-					print keyword,part
+					#print keyword,part
+					arr_item = keyword OFS part
+					s_array[arr_item]++
 					initialize()
 				}
 			}
@@ -261,7 +267,9 @@ BEGIN{
 				}
 				sub(part_sep"$","",part)
 				sub(gram_sep"$","",keyword)
-				print keyword,part
+				#print keyword,part
+					arr_item = keyword OFS part
+					s_array[arr_item]++
 				initialize()
 			}
 			delete part_array
@@ -273,4 +281,10 @@ BEGIN{
 	delete w_array1
 	delete w_array2
 	#配列の初期化
+}
+END{
+	PROCINFO["sorted_in"]="@ind_str_asc";
+	for(s_item in s_array){
+		print s_item,s_array[s_item]
+	}
 }
