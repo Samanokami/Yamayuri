@@ -211,7 +211,7 @@ BEGIN{
 					#3gramで「フロイト」
 					#	print substr(sentence,position,n),w_array2[gram_tail]
 						#gramの単純出力と対応する形態素情報の出力
-					arr_item = keyword OFS part
+					arr_item = substr(sentence,position,n) OFS w_array2[gram_tail]
 					s_array[arr_item]++
 					}else{
 					#gram数が形態素の文字数より長い場合
