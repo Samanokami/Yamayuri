@@ -55,7 +55,7 @@ function set_mode(){
 		}
 	}
 }
-function input(val){
+function input(){
 	sentence = sentence val
 
 	w_tail += length(val)
@@ -93,6 +93,14 @@ function set_separator(){
 	}
 }
 BEGIN{
+	for(item=1;item<=ARGC-1;item++){
+		file_name_array[item] = ARGV[item]
+	}
+	PROCINFO["sorted_in"] = "@ind_str_asc";
+	asort(file_name_array)
+	for(item=1;item<=ARGC-1;item++){
+		ARGV[item] = file_name_array[item]
+	}
 	FS="\t"
 
 	print "Mora:1 or Word:2 or Morpheme:3"
@@ -112,12 +120,22 @@ BEGIN{
 
 	print "Set Gram Separator"
 	set_separator()
-	gram_sep = val
+	if(val==OFS){
+		gram_sep = "/"
+		temp_gram_sep = val
+	}else{
+		gram_sep = val
+	}
 	pgram_sep = pval
 
 	print "Set Part Separator"
 	set_separator()
-	part_sep = val
+	if(val==OFS){
+		part_sep = "*"
+		temp_part_sep = val
+	}else{
+		part_sep = val
+	}
 	ppart_sep = pval
 	#区切り子の設定
 	#何も入力されなかった場合はスラッシュを設定
@@ -186,9 +204,10 @@ BEGIN{
 		if($0 !~/EOS/){
 			gram_unit()
 			set_mode()
-			input(val)
+			input()
 		}
 	}
+	close(command)
 	#解析対象のテキストファイルは一文ごとに改行したもの
 	#テキストファイルから一行ずつ読み込み
 	#MeCabに放り込む
@@ -209,10 +228,10 @@ BEGIN{
 					#gram数が形態素の文字数より短い場合
 					#gramは一つの形態素から構成されている
 					#3gramで「フロイト」
-					#	print substr(sentence,position,n),w_array2[gram_tail]
+						#print substr(sentence,position,n),w_array2[gram_tail]
 						#gramの単純出力と対応する形態素情報の出力
-					arr_item = substr(sentence,position,n) OFS w_array2[gram_tail]
-					s_array[arr_item]++
+						arr_item = substr(sentence,position,n) OFS w_array2[gram_tail]
+						s_array[arr_item,FILENAME]++
 					}else{
 					#gram数が形態素の文字数より長い場合
 					#gramは複数の形態素から構成されている
@@ -222,8 +241,8 @@ BEGIN{
 						sub(gram_sep"$","",keyword)
 						#数珠つなぎの最後の区切り記号を削る
 					#	print keyword,part
-					arr_item = keyword OFS part
-					s_array[arr_item]++
+						arr_item = keyword OFS part
+						s_array[arr_item,FILENAME]++
 						initialize()
 					}
 				}else{
@@ -239,7 +258,7 @@ BEGIN{
 					#処理済みの文字数を控除
 					#print keyword,part
 					arr_item = keyword OFS part
-					s_array[arr_item]++
+					s_array[arr_item,FILENAME]++
 					initialize()
 				}
 			}
@@ -268,8 +287,8 @@ BEGIN{
 				sub(part_sep"$","",part)
 				sub(gram_sep"$","",keyword)
 				#print keyword,part
-					arr_item = keyword OFS part
-					s_array[arr_item]++
+				arr_item = keyword OFS part
+				s_array[arr_item,FILENAME]++
 				initialize()
 			}
 			delete part_array
@@ -283,8 +302,69 @@ BEGIN{
 	#配列の初期化
 }
 END{
+	for(name=1;name<=ARGC-1;name++){
+		files = files ARGV[name] OFS
+	}
+	sub(OFS"$","",files)
+	print "グラム","品詞情報",files
+	
+	num_gram = 1
 	PROCINFO["sorted_in"]="@ind_str_asc";
-	for(s_item in s_array){
-		print s_item,s_array[s_item]
+	for(item in s_array){
+		#print item , s_array[item]
+		material =  item SUBSEP s_array[item]
+		split(material,item_array,SUBSEP)
+		last_array[num_gram][1] = item_array[1]
+		last_array[num_gram][2] = item_array[2]
+		last_array[num_gram][3] = item_array[3]
+		num_gram ++
+	}
+	num_gram = num_gram - 1
+	for(count=1;count<=num_gram;count++){
+		val1 = last_array[count][1]
+		val2 = last_array[count][2]
+		val3 = last_array[count][3]
+
+		if(val1==pre_val1){
+			while(val2!=ARGV[f_name]){
+				output = output OFS "0"
+				f_name ++
+			}
+			output = output OFS val3
+			pre_val1 = val1
+			f_name ++
+		}else{
+			if(output!=""){
+				temp = 1
+				while(temp<=length(ARGV)-2){
+					output = output OFS "0"
+					temp++
+				}
+				split(output,output_array,OFS)
+				for(output_num=1;output_num<=ARGC+1;output_num++){
+					last_output = last_output output_array[output_num] OFS
+				}
+				sub(",$","",last_output)
+				if(temp_gram_sep==OFS){
+					gsub("/",OFS,last_output)
+				}
+				if(temp_part_sep==OFS){
+					gsub("*",OFS,last_output)
+				}
+				print last_output
+				last_output = ""
+				output = ""
+
+			}
+			f_name = 1
+			output = val1
+			while(val2!=ARGV[f_name]){
+				output = output OFS "0"
+				f_name ++
+			}
+			output = output OFS val3
+			pre_val1 = val1
+			f_name ++
+		}
 	}
 }
