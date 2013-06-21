@@ -27,9 +27,9 @@ function initialize(){
 }
 
 function set_gram(){
-	print "Please set Minimum Gram"
+	print "Nの最小値"
 	getline min <"-"
-	print "Please set Maximum Gram"
+	print "Nの最大値"
 	getline max <"-"
 }
 
@@ -73,16 +73,46 @@ function input(){
 	#形態素の品詞情報
 }
 
-function set_separator(){
-	print "Choose Tab:1 New Line:2 Any other:3"
+function file_output(){
+	if(output!=""){
+		temp = 1
+		while(temp<=length(ARGV)-2){
+			output = output OFS "0"
+			temp++
+		}
+		split(output,output_array,OFS)
+		for(output_num=1;output_num<=ARGC+1;output_num++){
+			last_output = last_output output_array[output_num] OFS
+		}
+		sub(",$","",last_output)
+		if(temp_gram_sep==OFS){
+			gsub("/",OFS,last_output)
+		}
+		if(temp_part_sep==OFS){
+			gsub("*",OFS,last_output)
+		}
+		if(answer2==1){
+			print last_output >> output_file_name
+		}else if(answer2==2){
+			print last_output > output_file_name
+		}else if(answer2==3){
+			print last_output
+		}
+		last_output = ""
+		output = ""
+	}
+}
+
+function set_separator(init){
+	print "タブ:1 改行:2 任意の記号:3"
 	getline val <"-"
 	while(val!=""&&val!=1&&val!=2&&val!=3){
-		print "Error!"
+		print "正しい数字を選択してください"
 		getline val <"-"
 	}
 	if(val==""){
-		val = ","
-		pval = ","
+		val = init
+		pval = init
 	}else if(val==1){
 		val = "\t"
 		pval = "\\t"
@@ -90,7 +120,7 @@ function set_separator(){
 		val = "\n"
 		pval = "\\n"
 	}else if(val==3){
-		print "Enter Separator"
+		print "記号を入力してください"
 		getline val <"-"
 		if(val==""){
 			val = ","
@@ -98,8 +128,36 @@ function set_separator(){
 		pval = val
 	}
 }
+
+function chain(){
+	while(val2!=ARGV[f_name]){
+		output = output OFS "0"
+		f_name ++
+	}
+	output = output OFS val3
+	pre_val1 = val1
+	f_name ++
+}
+
+
+BEGINFILE{
+	if(ERRNO){
+		print FILENAME "が見つかりません。"
+		print "このまま続けますか？"
+		print "続ける:1 確認する:2"
+		getline answer1 <"-"
+		while(answer1!=1&&answer1!=2){
+			print "正しい数字を選択してください"
+			getline answer1 <"-"
+		}
+		if(answer1==2){
+			exit
+		}
+		nextfile
+	}
+}
+
 BEGIN{
-	#ここから
 	for(item=1;item<=ARGC-1;item++){
 		file_name_array[item] = ARGV[item]
 	}
@@ -108,14 +166,31 @@ BEGIN{
 	for(item=1;item<=ARGC-1;item++){
 		ARGV[item] = file_name_array[item]
 	}
-	#ここまで
 	FS="\t"
 
-	print "Set Gram Unit"
-	print "Mora:1 Word:2 Morph:3"
+	print "結果を保存しますか？"
+	print "追記する:1 上書き保存する:2 保存しない:3"
+	getline answer2 <"-"
+	while(answer2!=""&&answer2!=1&&answer2!=2&&answer2!=3){
+		print "正しい数字を選択してください"
+		getline answer2 <"-"
+	}
+	if(answer2==""){
+		answer2=3
+	}else if(answer2==1||answer2==2){
+		print "どのファイルに保存しますか？"
+		getline output_file_name <"-"
+		while(output_file_name==""){
+			getline output_file_name <"-"
+		}
+	}
+
+
+	print "グラムの単位"
+	print "文字:1 書字形:2 語彙素:3"
 	getline unit <"-"
 	while(unit!=""&&unit!=1&&unit!=2&&unit!=3){
-		print "Error!"
+		print "正しい数字を選択してください"
 		getline unit <"-"
 	}
 	if(unit==""){
@@ -123,15 +198,15 @@ BEGIN{
 	}
 
 	sid=0
-	
-	print "Field Separator"
-	set_separator()
+
+	print "項目の区切記号"
+	set_separator(",")
 	OFS = val
 	pOFS = pval
 
-	print "Set Gram Separator"
-	set_separator()
-	if(val=OFS){
+	print "グラムの区切記号"
+	set_separator("/")
+	if(val==OFS){
 		gram_sep = "/"
 		temp_gram_sep = val
 	}else{
@@ -139,10 +214,10 @@ BEGIN{
 	}
 	pgram_sep = pval
 
-	print "Set Part Separator"
-	set_separator()
-	if(val=OFS){
-		part_sep = "/"
+	print "品詞の区切記号"
+	set_separator("/")
+	if(val==OFS){
+		part_sep = "*"
 		temp_part_sep = val
 	}else{
 		part_sep = val
@@ -150,12 +225,12 @@ BEGIN{
 	ppart_sep = pval
 	#区切り子の設定
 	#何も入力されなかった場合はスラッシュを設定
-	
-	print "Text:1 or Kana:2"
+
+	print "原文:1 読み:2"
 	getline mode <"-"
 	while(mode!=""&&mode!=1&&mode!=2){
 	#適切な値が入力されているかどうか
-		print "Error!"
+		print "正しい数字を選択してください"
 		getline mode <"-"
 	}
 	if(mode==""){
@@ -178,29 +253,39 @@ BEGIN{
 	#一方の値のみ入力された場合は同値を設定
 	#0,0gramだった場合は品詞をカウント
 	while(min>max){
-		print "Error!"
-		print "Small to Large"
+		print "最小値は最大値より小さいものを設定してください"
 		set_gram()
 	}
 	#適切な値が入力されているかどうか
-	
+
+	if(answer1==1){
+		print "追記"
+	}else if(answer2==2){
+		print "上書き"
+	}else if(answer2==3){
+		print "保存しない"
+	}
+
 	if(unit==1){
-		print "Mora"
+		print "文字"
 	}else if(unit==2){
-		print "Word"
+		print "書字形"
 	}else{
-		print "Morpheme"
+		print "語彙素"
 	}
+
 	if(mode==1){
-		print "Text Mode"
+		print "原文"
 	}else{
-		print "Kana Mode"
+		print "読み"
 	}
-	print "Field Separator:" pOFS
-	print "Mora Separator:" pgram_sep
-	print "Morpheme Separator:" ppart_sep
+
+	print "項目の区切記号:" pOFS
+	print "グラムの区切記号:" pgram_sep
+	print "品詞の区切記号:" ppart_sep
+
 	if(min<max){
-		print min "gram to " max "gram"
+		print min "gram から " max "gram まで"
 	}else{
 		print min "gram"
 	}
@@ -219,7 +304,7 @@ BEGIN{
 		gram_unit()
 		set_mode()
 		input()
-		
+
 	}else if($2 =="I"){
 		gram_unit()
 		set_mode()
@@ -229,6 +314,9 @@ BEGIN{
 }
 
 END{
+	if(answer1==2){
+		exit
+	}
 	sentence[sid][1] = one_sentence
 	sentence[sid][2] = pre_file_name
 	for(stid = 1;stid<=sid;stid++){
@@ -238,7 +326,7 @@ END{
 				#文字列の先頭から、最後のgramの先頭の文字まで繰り返す
 					gram_tail = position + n - 1
 					#gramの最後尾が先頭から何文字目か
-		
+
 					if(w_array2[stid,gram_tail] != ""){
 					#gramの最後尾と対応する形態素情報が空要素じゃない
 					#つまりgramの最後尾が形態素の最後尾と一致する場合
@@ -247,10 +335,10 @@ END{
 						#gramは一つの形態素から構成されている
 							#print substr(sentence[stid],position,n),w_array2[stid,gram_tail]
 							#gramの単純出力と対応する形態素情報の出力
-							
+
 							arr_item = substr(sentence[stid][1],position,n) OFS w_array2[stid,gram_tail] SUBSEP sentence[stid][2]
 							s_array[arr_item]++
-							
+
 						}else{
 						#gram数が形態素の文字数より長い場合
 						#gramは複数の形態素から構成されている
@@ -260,10 +348,10 @@ END{
 							sub(gram_sep"$","",keyword)
 							#数珠つなぎの最後の区切り記号を削る
 							#print keyword,part
-							
+
 							arr_item = keyword OFS part SUBSEP sentence[stid][2]
 							s_array[arr_item]++
-							
+
 							initialize()
 							}
 					}else{
@@ -278,10 +366,10 @@ END{
 						#含まれる最後の形態素（gramには途中まで）の追加
 						#処理済みの文字数を控除
 						#print keyword,part
-						
+
 						arr_item = keyword OFS part SUBSEP sentence[stid][2]
 						s_array[arr_item]++
-							
+
 						initialize()
 						#position = 1
 						#変数：positionは絶対に初期化してはいけない
@@ -309,7 +397,7 @@ END{
 					sub(part_sep"$","",part)
 					sub(gram_sep"$","",keyword)
 					#print keyword,part
-					
+
 					arr_item = keyword OFS part SUBSEP sentence[stid][2]
 					s_array[arr_item]++
 					initialize()
@@ -320,12 +408,17 @@ END{
 		}
 	}
 
-#ここから
 	for(name=1;name<=ARGC-1;name++){
 		files = files ARGV[name] OFS
 	}
 	sub(OFS"$","",files)
-	print "グラム","品詞情報",files
+	if(answer2==1){
+		print "グラム","品詞情報",files >> output_file_name
+	}else if(answer==2){
+		print "グラム","品詞情報",files > output_file_name
+	}else if(answer==3){
+		print "グラム","品詞情報",files
+	}
 
 	num_gram = 1
 	PROCINFO["sorted_in"]="@ind_str_asc";
@@ -342,48 +435,15 @@ END{
 		val1 = last_array[count][1]
 		val2 = last_array[count][2]
 		val3 = last_array[count][3]
-	
+
 		if(val1==pre_val1){
-			while(val2!=ARGV[f_name]){
-				output = output OFS "0"
-				f_name ++
-			}
-		output = output OFS val3
-		pre_val1 = val1
-		f_name ++
+			chain()
 		}else{
-			if(output!=""){
-				temp = 1
-				while(temp<=length(ARGV)-2){
-					output = output OFS "0"
-					temp++
-				}
-				split(output,output_array,OFS)
-				for(output_num=1;output_num<=ARGC+1;output_num++){
-					last_output = last_output output_array[output_num] OFS
-				}
-				sub(",$","",last_output)
-				if(temp_gram_sep==OFS){
-					gsub("/",OFS,last_output)
-				}
-				if(temp_part_sep==OFS){
-					gsub("*",OFS,last_output)
-				}
-				print last_output
-				last_output = ""
-				output = ""
-	
-			}
+			file_output()
 			f_name = 1
 			output = val1
-			while(val2!=ARGV[f_name]){
-				output = output OFS "0"
-				f_name ++
-			}
-			output = output OFS val3
-			pre_val1 = val1
-			f_name ++
+			chain()
 		}
 	}
-#ここまで
+	file_output()
 }
