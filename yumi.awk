@@ -18,14 +18,20 @@ function file_output(){
 		for(output_num=1;output_num<=ARGC;output_num++){
 			last_output = last_output output_array[output_num] OFS
 		}
-		sub(",$","",last_output)
+		for(output_num=2;output_num<=ARGC;output_num++){
+			sum += output_array[output_num]
+		}
+		last_output = last_output sum 
 		if(answer2==1){
 			print last_output
-		}else{
+		}else if(answer2==2){
 			print last_output >> output_file_name
+		}else if(answer2==3){
+			print last_output > output_file_name
 		}
 		last_output = ""
 		output = ""
+		sum = ""
 	}
 }
 BEGINFILE{
@@ -37,7 +43,7 @@ BEGINFILE{
 		while(answer1!=1&&answer1!=2){
 			print "お姉さま？"
 			getline answer1 <"-"
-		}	
+		}
 		if(answer1==2){
 			exit
 		}
@@ -47,9 +53,11 @@ BEGINFILE{
 BEGIN{
 	OFS = ","
 	print "結果を保存しますか？"
-	print "メモ書きだから、保存しなくても良いのよ。:1 ええ、保存しておいて頂戴。:2"
+	print "ちょっとしたメモだから、保存しなくても良いのよ。:1"
+	print "ええ、保存しておいて頂戴。ファイルに書き足してくれるかしら。:2"
+	print "そうね、ファイルは上書きしてしまいましょう。:3"
 	getline answer2 <"-"
-	while(answer2!=""&&answer2!=1&&answer2!=2){
+	while(answer2!=""&&answer2!=1&&answer2!=2&&answer2!=3){
 		print "お姉さま、私、何か変なことを聞いてしまいましたか・・・。"
 		getline answer2 <"-"
 	}
@@ -59,7 +67,7 @@ BEGIN{
 	}
 	if(answer2==1){
 		print "わかりました。"
-	}else if(answer2==2){
+	}else if(answer2==2||answer2==3){
 		print "どのファイルに保存しますか？"
 		getline output_file_name <"-"
 		while(output_file_name==""){
@@ -67,7 +75,7 @@ BEGIN{
 			getline output_file_name <"-"
 		}
 	}
-
+	
 	if(ARGC==1){
 		print "これは何のデータですか？"
 		getline direct_file_name <"-"
@@ -83,7 +91,7 @@ BEGIN{
 			print "お姉さま、合言葉を決めてくださらないと・・・。"
 			getline exit_word <"-"
 		}
-
+	
 		print "キーワードをどうぞ。"
 		print "最後に合言葉を入力してくださいね。"
 		while(text!=exit_word){
@@ -91,6 +99,23 @@ BEGIN{
 			s_array[text]++
 		}
 		print
+		if(answer2==1){
+			print "キーワード",direct_file_name
+		}else if(answer2==2){
+			print "キーワード",direct_file_name >> output_file_name
+		}else if(answer2==3){
+			print "キーワード",direct_file_name > output_file_name
+		}
+		PROCINFO["sorted_in"]="@ind_str_asc"
+		for(item in s_array){
+			if(item!=exit_word){
+				if(answer2==1){
+					print item,s_array[item]
+				}else{
+					print item,s_array[item] >> output_file_name
+				}
+			}
+		}
 		exit
 	}else{
 		for(item=1;item<=ARGC-1;item++){
@@ -109,61 +134,46 @@ BEGIN{
 	}
 }
 END{
-	if(ARGC==1&&answer1==1){
-		if(answer2==1){
-			print "キーワード",direct_file_name
-		}else{
-			print "キーワード",direct_file_name >> output_file_name
-		}
-		PROCINFO["sorted_in"]="@ind_str_asc"
-		for(item in s_array){
-			if(item!=exit_word){
-				if(answer2==1){
-					print item,s_array[item]
-				}else{
-					print item,s_array[item] >> output_file_name
-				}
-			}
-		}
+	if(ARGC==1||answer1==2){
 		exit
 	}
-
-	if(ARGC!=1&&answer1==1){
-	for(name=1;name<=ARGC-1;name++){
-		files = files ARGV[name] OFS
-	}
-	sub(OFS"$","",files)
-	if(answer2==1){
-		print "キーワード",files
-	}else{
-		print "キーワード",files >> output_file_name
-	}
-
-	num_gram = 1
-	PROCINFO["sorted_in"]="@ind_str_asc";
-	for(item in s_array){
-		material =  item SUBSEP s_array[item]
-		split(material,item_array,SUBSEP)
-		last_array[num_gram][1] = item_array[1]
-		last_array[num_gram][2] = item_array[2]
-		last_array[num_gram][3] = item_array[3]
-		num_gram ++
-	}
-	num_gram = num_gram - 1
-	for(count=1;count<=num_gram;count++){
-		val1 = last_array[count][1]
-		val2 = last_array[count][2]
-		val3 = last_array[count][3]
-		
-		if(val1==pre_val1){
-			chain()
-		}else{
-			file_output()
-			f_name = 1
-			output = val1
-			chain()
+	
+	if(ARGC!=1){
+		for(name=1;name<=ARGC-1;name++){
+			files = files ARGV[name] OFS
 		}
-}		
-	file_output()
+		sub(OFS"$","",files)
+		if(answer2==1){
+			print "キーワード",files
+		}else{
+			print "キーワード",files >> output_file_name
+		}
+		
+		num_gram = 1
+		PROCINFO["sorted_in"]="@ind_str_asc";
+		for(item in s_array){
+			material =  item SUBSEP s_array[item]
+			split(material,item_array,SUBSEP)
+			last_array[num_gram][1] = item_array[1]
+			last_array[num_gram][2] = item_array[2]
+			last_array[num_gram][3] = item_array[3]
+			num_gram ++
+		}
+		num_gram = num_gram - 1
+		for(count=1;count<=num_gram;count++){
+			val1 = last_array[count][1]
+			val2 = last_array[count][2]
+			val3 = last_array[count][3]
+			
+			if(val1==pre_val1){
+				chain()
+			}else{
+				file_output()
+				f_name = 1
+				output = val1
+				chain()
+			}
+		}
+		file_output()
 	}
 }

@@ -84,7 +84,11 @@ function file_output(){
 		for(output_num=1;output_num<=ARGC+1;output_num++){
 			last_output = last_output output_array[output_num] OFS
 		}
-		sub(",$","",last_output)
+		#sub(",$","",last_output)
+		for(output_num=2;output_num<=ARGC+1;output_num++){
+			sum += output_array[output_num]
+		}
+		last_output = last_output sum
 		if(temp_gram_sep==OFS){
 			gsub("/",OFS,last_output)
 		}
@@ -100,6 +104,7 @@ function file_output(){
 		}
 		last_output = ""
 		output = ""
+		sum = ""
 	}
 }
 
@@ -413,11 +418,11 @@ END{
 	}
 	sub(OFS"$","",files)
 	if(answer2==1){
-		print "グラム","品詞情報",files >> output_file_name
+		print "グラム","品詞情報",files,"合計値" >> output_file_name
 	}else if(answer==2){
-		print "グラム","品詞情報",files > output_file_name
+		print "グラム","品詞情報",files,"合計値" > output_file_name
 	}else if(answer==3){
-		print "グラム","品詞情報",files
+		print "グラム","品詞情報",files,"合計値"
 	}
 
 	num_gram = 1

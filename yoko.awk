@@ -82,7 +82,11 @@ function file_output(){
 			last_output = last_output output_array[output_num] OFS
 		}
 
-		sub(",$","",last_output)
+		for(output_num=2;output_num<=ARGC+1;output_num++){
+			sum += output_array[output_num]
+		}
+		#sub(",$","",last_output)
+		last_output = last_output sum
 
 		if(temp_gram_sep==OFS){
 			gsub("/",OFS,last_output)
@@ -102,6 +106,7 @@ function file_output(){
 
 		last_output = ""
 		output = ""
+		sum = ""
 	}
 }
 
@@ -405,17 +410,16 @@ END{
 	}
 	sub(OFS"$","",files)
 	if(answer2==1){
-		print "グラム","品詞情報",files >> output_file_name
+		print "グラム","品詞情報",files,"合計値" >> output_file_name
 	}else if(answer2==2){
-		print "グラム","品詞情報",files > output_file_name
+		print "グラム","品詞情報",files,"合計値" > output_file_name
 	}else if(answer2==3){
-		print "グラム","品詞情報",files
+		print "グラム","品詞情報",files,"合計値"
 	}
 	
 	num_gram = 1
 	PROCINFO["sorted_in"]="@ind_str_asc";
 	for(item in s_array){
-		#print item , s_array[item]
 		material =  item SUBSEP s_array[item]
 		split(material,item_array,SUBSEP)
 		last_array[num_gram][1] = item_array[1]
