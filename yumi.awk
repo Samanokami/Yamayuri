@@ -111,8 +111,10 @@ BEGIN{
 			if(item!=exit_word){
 				if(answer2==1){
 					print item,s_array[item]
-				}else{
+				}else if(answer2==2){
 					print item,s_array[item] >> output_file_name
+				}else if(answer2==3){
+					print item,s_array[item] > output_file_name
 				}
 			}
 		}
@@ -144,9 +146,11 @@ END{
 		}
 		sub(OFS"$","",files)
 		if(answer2==1){
-			print "キーワード",files
-		}else{
-			print "キーワード",files >> output_file_name
+			print "キーワード",files,"合計値"
+		}else if(answer2==2){
+			print "キーワード",files,"合計値" >> output_file_name
+		}else if(answer2==3){
+			print "キーワード",files,"合計値" > output_file_name
 		}
 		
 		num_gram = 1
