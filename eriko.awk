@@ -205,59 +205,39 @@ BEGIN{
 
 
 	print "グラムの単位"
-	print "文字:1 書字形:2 語彙素:3"
+	print "書字形:1 語彙素:2"
 	getline unit <"-"
-	while(unit!=""&&unit!=1&&unit!=2&&unit!=3){
+	while(unit!=""&&unit!=2&&unit!=3){
 		print "正しい数字を選択してください"
 		getline unit <"-"
 	}
 	if(unit==""){
-		unit = 1
+		unit = 2 
 	}
+	unit ++
 
-	print "項目の区切記号"
-	set_separator(",")
-	OFS = val
-	pOFS = pval
+	OFS = ","	#項目の区切
+	pOFS = ","
 
-	print "グラムの区切記号"
-	set_separator("/")
-	if(val==OFS){
-		gram_sep = "/"
-		temp_gram_sep = val
-	}else{
-		gram_sep = val
-	}
-	pgram_sep = pval
+	gram_sep = "/"	#単語の区切
+	pgram_sep = "/"
 
-	print "品詞の区切記号"
-	set_separator("/")
-	if(val==OFS){
-		part_sep = "*"
-		temp_part_sep = val
-	}else{
-		part_sep = val
-	}
-	ppart_sep = pval
-	#区切り子の設定
-	#何も入力されなかった場合はスラッシュを設定
+	part_sep = "/"	#品詞の区切記号
+	ppart_sep = "/"
 
 	print "原文:1 or 読み:2"
 	getline mode <"-"
-	while(mode!=""&&mode!=1&&mode!=2){
-	#適切な値が入力されているかどうか
+	while(mode!=""&&mode!=1&&mode!=2){	#適切な値が入力されているかどうか
 		print "正しい数字を選択してください"
 		getline mode <"-"
 	}
 	if(mode==""){
-		mode = 1
+		mode = 1	#何も入力されなかった場合はテキストモードを設定
 	}
-	#何も入力されなかった場合はテキストモードを設定
 
-	#set_gram()
 	set_span()
 	if(min==""){
-		if(max==""){
+		if(max==""){	#いずれの値にも入力されなかった場合は1~10gramを設定
 			min = 1
 			max = 10
 		}else{
@@ -266,22 +246,19 @@ BEGIN{
 	}else if(max==""){
 		max = min
 	}
-	#いずれの値にも入力されなかった場合は1~10gramを設定
 	#一方の値のみ入力された場合は同値を設定
 
-	while(min > max){
+	while(min > max){	#適切な値が入力されているかどうか
 		print "最小値は最大値より小さいものを設定してください"
 		set_span()
 	}
-	#適切な値が入力されているかどうか
 
-	#conv_sn(min)
-	#conv_sn(max)
 	pmin = min
 	pmax = max
 	min = min * 2 + 1
 	max = max * 2 + 1
 
+	#設定値の表示
 	if(answer1==1){
 		print "追記"
 	}else if(answer2==2){
@@ -313,9 +290,8 @@ BEGIN{
 	}else{
 		print "スパン " pmin 
 	}
-	#設定値の表示
-	print
-	#データ本体との改行
+
+	print	#データ本体との改行
 }
 
 {

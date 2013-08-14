@@ -166,7 +166,7 @@ BEGIN{
 	for(item=1;item<=ARGC-1;item++){
 		file_name_array[item] = ARGV[item]
 	}
-	PROCINFO["sorted_in"] = "@ind_str_asc";
+	PROCINFO["sorted_in"] = "@val_str_asc";
 	asort(file_name_array)
 	for(item=1;item<=ARGC-1;item++){
 		ARGV[item] = file_name_array[item]
@@ -298,7 +298,13 @@ BEGIN{
 }
 
 {
-	command = "echo " $0 "| mecab"
+#	command1 = "uname"
+#	if(command1 | getline=="Darwin"){
+		#command = "echo " $0 "|nkf --ic=UTF-8-MAC -wLu|mecab"
+#	}else{
+		command = "echo " $0 "|mecab"
+#	}
+#	close(command1)
 	while(command | getline){
 		if($0 !~/EOS/){
 			gram_unit()
