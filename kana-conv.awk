@@ -7,7 +7,7 @@ BEGIN{
 	sentence = $0
 	command = "echo " sentence "|mecab"
 	while(command | getline){
-		print $0
+		#print $0
 		if($0 != "EOS"){
 			#sub(/\t/,",")
 			if($2==""){

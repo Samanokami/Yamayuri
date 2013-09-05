@@ -1,5 +1,21 @@
 BEGIN{
 	FS = OFS = ","
+	print "追記:1 新規or上書き保存:2 標準出力:3"
+	getline answer1 <"-"
+	while(answer1!=1&&answer1!=2&&answer1!=3){
+		print "正しい数字を入力してください。"
+		getline answer1 <"-"
+	}
+	if(answer1!=3){
+		print "保存先を指定してください"
+		getline answer2 <"-"
+	}
+	print "タブ：1 一覧表：2"
+	getline format <"-"
+	while(format!=1&&format!=2){
+		print "正しい数字を入力してください。"
+		getline format <"-"
+	}
 }
 {
 	if(NR==1){
@@ -34,8 +50,16 @@ BEGIN{
 END{
 	#print num_of_file
 	file_count = 1 
-	print "************************************************************************"
-	print "前方共起"
+	if(answer1==1){
+		print "************************************************************************" >> answer2
+		print "前方共起" >> answer2
+	}else if(answer1==2){ 
+		print "************************************************************************" > answer2
+		print "前方共起" > answer2
+	}else{
+		print "************************************************************************" 
+		print "前方共起"
+	}
 	PROCINFO["sorted_in"] = "@ind_str_asc";
 	for(item in pre){
 		#print item
@@ -52,19 +76,50 @@ END{
 		}else{
 			MI = T = "-"
 		}
+		#score = score node_freq OFS other_freq OFS app_freq OFS MI OFS T OFS
 		score = score MI OFS T OFS
 
-		if(pre_gram!=sub_arr[1]){
-			print "------------------------------------------------------------------------"
-			print "スパン：" sub_arr[1]
+		if(pre_gram!=sub_arr[1]&&format==1){
+			if(answer1==1){
+				print "------------------------------------------------------------------------" >> answer2
+				print "スパン：" (sub_arr[1]-1)/2 >> answer2
+			}else if(answer1==2){ 
+				print "------------------------------------------------------------------------" > answer2
+				print "スパン：" (sub_arr[1]-1)/2 > answer2
+			}else{
+				print "------------------------------------------------------------------------" 
+				print "スパン：" (sub_arr[1]-1)/2
+			}
 		}
-		if(pre_word!=sub_arr[2]){
-			print sub_arr[2]	#中心語の表示
+		if(pre_word!=sub_arr[2]&&format==1){
+			if(answer1==1){
+				print sub_arr[2] >> answer2	#中心語の表示
+			}else if(answer1==2){ 
+				print sub_arr[2] > answer2	#中心語の表示
+			}else{
+				print sub_arr[2]	#中心語の表示
+			}
 		}
 
 		if(file_count==num_of_file){
 			sub(/,$/,"",score)
-			print "\t" sub_arr[3],score
+			if(format==1){
+				if(answer1==1){
+					print "\t" sub_arr[3],score >> answer2
+				}else if(answer1==2){
+					print "\t" sub_arr[3],score > answer2
+				}else{
+					print "\t" sub_arr[3],score 
+				}
+			}else{
+				if(answer1==1){
+					print (sub_arr[1]-1)/2,sub_arr[2],sub_arr[3],score >> answer2
+				}else if(answer1==2){
+					print (sub_arr[1]-1)/2,sub_arr[2],sub_arr[3],score > answer2
+				}else{ 
+					print (sub_arr[1]-1)/2,sub_arr[2],sub_arr[3],score
+				}
+			}
 			file_count = 1
 			score = ""
 		}else{
@@ -76,8 +131,16 @@ END{
 		delete sub_arr
 	}
 
-	print "************************************************************************"
-	print "後方共起"
+	if(answer1==1){
+		print "************************************************************************" >> answer2
+		print "後方共起" >> answer2
+	}else if(answer1==2){ 
+		print "************************************************************************" > answer2
+		print "後方共起" > answer2
+	}else{
+		print "************************************************************************" 
+		print "後方共起"
+	}
 	PROCINFO["sorted_in"] = "@ind_str_asc";
 	for(item in bef){
 		#print item
@@ -94,19 +157,50 @@ END{
 		}else{
 			MI = T = "-"
 		}
+		#score = score node_freq OFS other_freq OFS app_freq OFS MI OFS T OFS
 		score = score MI OFS T OFS
 
-		if(pre_gram!=sub_arr[1]){
-			print "------------------------------------------------------------------------"
-			print "スパン：" sub_arr[1]
+		if(pre_gram!=sub_arr[1]&&format==1){
+			if(answer1==1){
+				print "------------------------------------------------------------------------" >> answer2
+				print "スパン：" (sub_arr[1]-1)/2 >> answer2
+			}else if(answer1==2){
+				print "------------------------------------------------------------------------" > answer2
+				print "スパン：" (sub_arr[1]-1)/2 > answer2
+			}else{
+				print "------------------------------------------------------------------------"
+				print "スパン：" (sub_arr[1]-1)/2
+			}
 		}
-		if(pre_word!=sub_arr[2]){
-			print sub_arr[2]
+		if(pre_word!=sub_arr[2]&&format==1){
+			if(answer1==1){
+				print sub_arr[2] >> answer2
+			}else if(answer1==2){
+				print sub_arr[2] > answer2
+			}else{
+				print sub_arr[2]
+			}
 		}
 
 		if(file_count==num_of_file){
 			sub(/,$/,"",score)
-			print "\t" sub_arr[3],score
+			if(format==1){
+				if(answer1==1){
+					print "\t" sub_arr[3],score >> answer2
+				}else if(answer1==2){
+					print "\t" sub_arr[3],score > answer2
+				}else{
+					print "\t" sub_arr[3],score
+				}
+			}else{
+				if(answer1==1){
+					print (sub_arr[1]-1)/2,sub_arr[2],sub_arr[3],score >> answer2
+				}else if(answer1==2){
+					print (sub_arr[1]-1)/2,sub_arr[2],sub_arr[3],score > answer2
+				}else{
+					print (sub_arr[1]-1)/2,sub_arr[2],sub_arr[3],score
+				}
+			}
 			file_count = 1
 			score = ""
 		}else{

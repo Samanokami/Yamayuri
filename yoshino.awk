@@ -319,90 +319,92 @@ END{
 	sentence[sid][1] = one_sentence	#ファイル最終行の処理
 	sentence[sid][2] = pre_file_name	#ファイル最終行の処理
 	for(stid = 1;stid<=sid;stid++){
-		for(n=1;n<=1;n+=2){
-			if(unit==1){
-				for(position=1;position<=(length(sentence[stid][1])-n+1);position++){
-				#文字列の先頭から、最後のgramの先頭の文字まで繰り返す
-					gram_tail = position + n - 1
-					#gramの最後尾が先頭から何文字目か
-
-					if(w_array2[stid,gram_tail] != ""){
-					#gramの最後尾と対応する形態素情報が空要素じゃない
-					#つまりgramの最後尾が形態素の最後尾と一致する場合
-						if(n<=w_array1[stid,gram_tail]){
-						#gram数が形態素の文字数より短い場合
-						#gramは一つの形態素から構成されている
-							#print substr(sentence[stid],position,n),w_array2[stid,gram_tail]
-							#gramの単純出力と対応する形態素情報の出力
-
-							arr_item = n SUBSEP substr(sentence[stid][1],position,n) OFS w_array2[stid,gram_tail] SUBSEP sentence[stid][2]
-							s_array[arr_item]++
-
+		if(answer2==2||answer2==3){
+			for(n=1;n<=1;n+=2){
+				if(unit==1){
+					for(position=1;position<=(length(sentence[stid][1])-n+1);position++){
+					#文字列の先頭から、最後のgramの先頭の文字まで繰り返す
+						gram_tail = position + n - 1
+						#gramの最後尾が先頭から何文字目か
+	
+						if(w_array2[stid,gram_tail] != ""){
+						#gramの最後尾と対応する形態素情報が空要素じゃない
+						#つまりgramの最後尾が形態素の最後尾と一致する場合
+							if(n<=w_array1[stid,gram_tail]){
+							#gram数が形態素の文字数より短い場合
+							#gramは一つの形態素から構成されている
+								#print substr(sentence[stid],position,n),w_array2[stid,gram_tail]
+								#gramの単純出力と対応する形態素情報の出力
+	
+								arr_item = n SUBSEP substr(sentence[stid][1],position,n) OFS w_array2[stid,gram_tail] SUBSEP sentence[stid][2]
+								s_array[arr_item]++
+	
+							}else{
+							#gram数が形態素の文字数より長い場合
+							#gramは複数の形態素から構成されている
+								joint()
+								#joint2()
+								sub(part_sep"$","",part)
+								sub(gram_sep"$","",keyword)
+								#数珠つなぎの最後の区切り記号を削る
+								#print keyword,part
+	
+								arr_item = n SUBSEP keyword OFS part SUBSEP sentence[stid][2]
+								s_array[arr_item]++
+	
+								initialize()
+							}
 						}else{
-						#gram数が形態素の文字数より長い場合
-						#gramは複数の形態素から構成されている
 							joint()
 							#joint2()
-							sub(part_sep"$","",part)
-							sub(gram_sep"$","",keyword)
-							#数珠つなぎの最後の区切り記号を削る
+							while(w_array2[stid,gram_tail]==""){
+							#gramの最後尾から、形態素の最後尾、つまり区切り位置までインクリメント
+								gram_tail++
+							}
+							part = part w_array2[stid,gram_tail]
+							keyword = keyword substr(sentence[stid][1],pre_item,n-key_length)
+							#含まれる最後の形態素（gramには途中まで）の追加
+							#処理済みの文字数を控除
 							#print keyword,part
-
+	
 							arr_item = n SUBSEP keyword OFS part SUBSEP sentence[stid][2]
 							s_array[arr_item]++
-
+	
 							initialize()
-							}
-					}else{
-						joint()
-						#joint2()
-						while(w_array2[stid,gram_tail]==""){
-						#gramの最後尾から、形態素の最後尾、つまり区切り位置までインクリメント
-							gram_tail++
+							#position = 1
+							#変数：positionは絶対に初期化してはいけない
+							#初期化すると大変なことになる
 						}
-						part = part w_array2[stid,gram_tail]
-						keyword = keyword substr(sentence[stid][1],pre_item,n-key_length)
-						#含まれる最後の形態素（gramには途中まで）の追加
-						#処理済みの文字数を控除
+					}
+				}else if(unit==2||unit==3){
+					num = 0
+					for(item=1;item<=length(sentence[stid][1]);item++){
+						if(w_array2[stid,item]!=""){
+							num++
+							#語数は先に加算
+							part_array[stid,num] =w_array2[stid,item]
+							morpheme[stid,num] = substr(sentence[stid][1],item-w_array1[stid,item]+1,w_array1[stid,item])
+							#品詞情報用の配列、単語・形態素用の配列にそれぞれ格納
+						}
+					}
+					for(s_pos=1;s_pos<=num-n+1;s_pos++){
+						#グラムの始点
+						for(pos=s_pos;pos<=s_pos+n-1;pos++){
+							keyword = keyword morpheme[stid,pos] gram_sep
+							part = part part_array[stid,pos] part_sep 
+							#一語ずつ数珠つなぎ
+						}
+						sub(part_sep"$","",part)
+						sub(gram_sep"$","",keyword)
 						#print keyword,part
-
+	
 						arr_item = n SUBSEP keyword OFS part SUBSEP sentence[stid][2]
 						s_array[arr_item]++
-
 						initialize()
-						#position = 1
-						#変数：positionは絶対に初期化してはいけない
-						#初期化すると大変なことになる
 					}
+					delete part_array
+					delete morpheme
 				}
-			}else if(unit==2||unit==3){
-				num = 0
-				for(item=1;item<=length(sentence[stid][1]);item++){
-					if(w_array2[stid,item]!=""){
-						num++
-						#語数は先に加算
-						part_array[stid,num] =w_array2[stid,item]
-						morpheme[stid,num] = substr(sentence[stid][1],item-w_array1[stid,item]+1,w_array1[stid,item])
-						#品詞情報用の配列、単語・形態素用の配列にそれぞれ格納
-					}
-				}
-				for(s_pos=1;s_pos<=num-n+1;s_pos++){
-					#グラムの始点
-					for(pos=s_pos;pos<=s_pos+n-1;pos++){
-						keyword = keyword morpheme[stid,pos] gram_sep
-						part = part part_array[stid,pos] part_sep 
-						#一語ずつ数珠つなぎ
-					}
-					sub(part_sep"$","",part)
-					sub(gram_sep"$","",keyword)
-					#print keyword,part
-
-					arr_item = n SUBSEP keyword OFS part SUBSEP sentence[stid][2]
-					s_array[arr_item]++
-					initialize()
-				}
-				delete part_array
-				delete morpheme
 			}
 		}
 
@@ -499,7 +501,7 @@ END{
 	}
 	sub(OFS"$","",files)
 	if(answer2==1){
-		print NR >> output_file_name
+		#print NR >> output_file_name
 	}else if(answer2==2){
 		print NR > output_file_name
 	}else if(answer2==3){

@@ -416,7 +416,7 @@ END{
 	}
 	sub(OFS"$","",files)
 	if(answer2==1){
-		print "グラム","品詞情報",files,"合計値" >> output_file_name
+		#print "グラム","品詞情報",files,"合計値" >> output_file_name
 	}else if(answer2==2){
 		print "グラム","品詞情報",files,"合計値" > output_file_name
 	}else if(answer2==3){

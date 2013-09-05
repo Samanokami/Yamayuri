@@ -166,7 +166,7 @@ BEGIN{
 	for(item=1;item<=ARGC-1;item++){
 		file_name_array[item] = ARGV[item]
 	}
-	PROCINFO["sorted_in"] = "@ind_str_asc";
+	PROCINFO["sorted_in"] = "@val_str_asc";
 	asort(file_name_array)
 	for(item=1;item<=ARGC-1;item++){
 		ARGV[item] = file_name_array[item]
@@ -418,7 +418,7 @@ END{
 	}
 	sub(OFS"$","",files)
 	if(answer2==1){
-		print "グラム","品詞情報",files,"合計値" >> output_file_name
+		#print "グラム","品詞情報",files,"合計値" >> output_file_name
 	}else if(answer2==2){
 		print "グラム","品詞情報",files,"合計値" > output_file_name
 	}else if(answer2==3){
