@@ -499,9 +499,11 @@ END{
 		#print "グラム","品詞情報",files,"合計値" >> output_file_name
 	}else if(answer2==2){
 		print number_of_words > output_file_name
+		print files > output_file_name
 		#print "グラム","品詞情報",files,"合計値" > output_file_name
 	}else if(answer2==3){
 		print number_of_words
+		print files
 		#print "グラム","品詞情報",files,"合計値"
 	}
 

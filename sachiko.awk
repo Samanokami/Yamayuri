@@ -81,14 +81,19 @@ function file_output(){
 			temp++
 		}
 		split(output,output_array,OFS)
-		for(output_num=1;output_num<=ARGC+1;output_num++){
+		for(output_num=1;output_num<=ARGC+1;output_num++){	#出現頻度を繋ぐ
 			last_output = last_output output_array[output_num] OFS
 		}
 		#sub(",$","",last_output)
-		for(output_num=2;output_num<=ARGC+1;output_num++){
+		for(output_num=2;output_num<=ARGC+1;output_num++){	#合計値
 			sum += output_array[output_num]
 		}
-		last_output = last_output sum
+		for(output_num=3;output_num<=ARGC+1;output_num++){	#該当数
+			if(output_array[output_num]!=0){
+				inclusion_file ++
+			}
+		}
+		last_output = val4 OFS last_output sum OFS inclusion_file
 		if(temp_gram_sep==OFS){
 			gsub("/",OFS,last_output)
 		}
@@ -105,6 +110,7 @@ function file_output(){
 		last_output = ""
 		output = ""
 		sum = ""
+		inclusion_file = ""
 	}
 }
 
@@ -341,7 +347,7 @@ END{
 							#print substr(sentence[stid],position,n),w_array2[stid,gram_tail]
 							#gramの単純出力と対応する形態素情報の出力
 
-							arr_item = substr(sentence[stid][1],position,n) OFS w_array2[stid,gram_tail] SUBSEP sentence[stid][2]
+							arr_item = n SUBSEP substr(sentence[stid][1],position,n) OFS w_array2[stid,gram_tail] SUBSEP sentence[stid][2]
 							s_array[arr_item]++
 
 						}else{
@@ -354,7 +360,7 @@ END{
 							#数珠つなぎの最後の区切り記号を削る
 							#print keyword,part
 
-							arr_item = keyword OFS part SUBSEP sentence[stid][2]
+							arr_item = n SUBSEP keyword OFS part SUBSEP sentence[stid][2]
 							s_array[arr_item]++
 
 							initialize()
@@ -372,7 +378,7 @@ END{
 						#処理済みの文字数を控除
 						#print keyword,part
 
-						arr_item = keyword OFS part SUBSEP sentence[stid][2]
+						arr_item = n SUBSEP keyword OFS part SUBSEP sentence[stid][2]
 						s_array[arr_item]++
 
 						initialize()
@@ -403,7 +409,7 @@ END{
 					sub(gram_sep"$","",keyword)
 					#print keyword,part
 
-					arr_item = keyword OFS part SUBSEP sentence[stid][2]
+					arr_item = n SUBSEP keyword OFS part SUBSEP sentence[stid][2]
 					s_array[arr_item]++
 					initialize()
 				}
@@ -418,11 +424,11 @@ END{
 	}
 	sub(OFS"$","",files)
 	if(answer2==1){
-		#print "グラム","品詞情報",files,"合計値" >> output_file_name
+		#print "N","グラム","品詞情報",files,"合計値","該当数" >> output_file_name
 	}else if(answer2==2){
-		print "グラム","品詞情報",files,"合計値" > output_file_name
+		print "N","グラム","品詞情報",files,"合計値","該当数" > output_file_name
 	}else if(answer2==3){
-		print "グラム","品詞情報",files,"合計値"
+		print "N","グラム","品詞情報",files,"合計値","該当数"
 	}
 
 	num_gram = 1
@@ -430,16 +436,18 @@ END{
 	for(item in s_array){
 		material =  item SUBSEP s_array[item]
 		split(material,item_array,SUBSEP)
-		last_array[num_gram][1] = item_array[1]
-		last_array[num_gram][2] = item_array[2]
-		last_array[num_gram][3] = item_array[3]
+		last_array[num_gram][1] = item_array[1]		#Nの値
+		last_array[num_gram][2] = item_array[2]		#グラム
+		last_array[num_gram][3] = item_array[3]		#ファイル名
+		last_array[num_gram][4] = item_array[4]		#出現頻度
 		num_gram ++
 	}
 	num_gram = num_gram - 1
 	for(count=1;count<=num_gram;count++){
-		val1 = last_array[count][1]
-		val2 = last_array[count][2]
-		val3 = last_array[count][3]
+		val1 = last_array[count][2]	#グラム
+		val2 = last_array[count][3]	#ファイル名
+		val3 = last_array[count][4]	#出現頻度
+		val4 = last_array[count][1]	#Nの値
 
 		if(val1==pre_val1){
 			chain()

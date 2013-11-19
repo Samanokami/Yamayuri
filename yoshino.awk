@@ -504,8 +504,10 @@ END{
 		#print NR >> output_file_name
 	}else if(answer2==2){
 		print NR > output_file_name
+		print files > output_file_name
 	}else if(answer2==3){
 		print NR
+		print files
 	}
 
 	num_gram = 1
