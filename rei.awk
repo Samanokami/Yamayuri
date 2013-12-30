@@ -207,7 +207,7 @@ END{
 				sum += calc
 			}else{
 				if(answer3==1||answer3==2){
-					calc = "NULL"
+					calc = ""
 				}else{
 					calc = 0
 				}

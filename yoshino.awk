@@ -1,5 +1,5 @@
 #Unidicで形態素解析したデータを、直接、N-gramと品詞に分割する
-function joint(){
+function joint(){#N-gramの結合
 	pre_item = gram_tail-n+1
 	for(item=gram_tail-n+1;item<=gram_tail;item++){
 	#gramの先頭から最後尾まで
@@ -17,23 +17,22 @@ function joint(){
 	}	
 }
 
-function initialize(){
+function initialize(){#変数の初期化
 	part = ""
 	keyword = ""
 	key_length = ""
 	pre_item = ""
 	w_tail = ""
-	#変数の初期化
 }
 
-function set_gram(){
+function set_gram(){#Nの最大値と最小値を定義する
 	print "Nの最小値"
 	getline min <"-"
 	print "Nの最大値"
 	getline max <"-"
 }
 
-function set_span(){
+function set_span(){#スパンの最大値と最小値を定義する
 	print "スパンの最小値"
 	getline min <"-"
 	print "スパンの最大値"
@@ -43,7 +42,7 @@ function conv_s2n(item){
 	item = item * 2 + 1
 	return item
 }
-function gram_unit(){
+function gram_unit(){#N-gramの採取単位を定義する
 	if(unit==1||unit==2){
 	#文字単位or書字形単位
 		kanji_val = $3
@@ -55,8 +54,7 @@ function gram_unit(){
 	}
 }
 
-function set_mode(){
-	#原文ママ、もしくはカナモードの選択
+function set_mode(){#原文ママ、もしくはカナモードの選択
 	if(mode==1){
 		val = kanji_val
 	}else if(mode==2){
@@ -70,7 +68,7 @@ function set_mode(){
 	}
 }
 
-function input(){
+function input(){#N-gramの配列への格納
 	one_sentence = one_sentence val
 
 	w_tail += length(val)
@@ -83,7 +81,7 @@ function input(){
 	#形態素の品詞情報
 }
 
-function file_output(){
+function file_output(){#ファイル出力
 	if(output!=""){
 		temp = 1
 		while(temp<=length(ARGV)-2){
@@ -118,7 +116,7 @@ function file_output(){
 	}
 }
 
-function set_separator(init){
+function set_separator(init){#区切り記号の選択
 	print "タブ:1 改行:2 任意の記号:3"
 	getline val <"-"
 	while(val!=""&&val!=1&&val!=2&&val!=3){
@@ -144,7 +142,7 @@ function set_separator(init){
 	}
 }
 
-function chain(){
+function chain(){#そのgramを含まない処理ファイルの欄に0を代入する
 	while(val2!=ARGV[f_name]){
 		output = output OFS "0"
 		f_name ++

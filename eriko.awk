@@ -1,6 +1,6 @@
 #MeCab+Unidicの組み合わせでN-gramを作成
 #Unidicの出力は全てデフォルトのまま
-function joint(){
+function joint(){#N-gramの結合
 	pre_item = gram_tail-n+1
 	for(item=gram_tail-n+1;item<=gram_tail;item++){
 	#gramの先頭から最後尾まで
@@ -17,27 +17,26 @@ function joint(){
 		}
 	}
 }
-function initialize(){
+function initialize(){#変数の初期化
 	part = ""
 	key_length = ""
 	keyword = ""
 	pre_item = ""
-	#変数の初期化
 }
-function set_gram(){
+function set_gram(){#Nの最大値と最小値を定義する
 	print "Nの最小値"
 	getline min <"-"
 	print "Nの最大値"
 	getline max <"-"
 }
-function set_span(){
+function set_span(){#スパンの最大値と最小値を定義する
 	print "スパンの最小値"
 	getline min <"-"
 	print "スパンの最大値"
 	getline max <"-"
 }
 
-function gram_unit(){
+function gram_unit(){#N-gramの採取単位を定義する
 	if(unit==1||unit==2){
 	#文字単位or単語単位
 		kanji_val = $1
@@ -48,8 +47,7 @@ function gram_unit(){
 		kana_val = $3
 	}
 }
-function set_mode(){
-	#原文ママ、もしくはカナモードの選択
+function set_mode(){#原文ママ、もしくはカナモードの選択
 	if(mode==1){
 		val = kanji_val
 	}else if(mode==2){
@@ -62,20 +60,17 @@ function set_mode(){
 		}
 	}
 }
-function input(){
+function input(){#N-gramの配列への格納
 	sentence = sentence val
 
-	w_tail += length(val)
-	#形態素の先頭からの区切り位置
+	w_tail += length(val)	#形態素の先頭からの区切り位置
 
-	w_array1[w_tail] = length(val)
-	#形態素の字数
+	w_array1[w_tail] = length(val)	#形態素の字数
 
-	w_array2[w_tail] = $5
-	#形態素の品詞情報
+	w_array2[w_tail] = $5	#形態素の品詞情報
 }
 
-function file_output(){
+function file_output(){#ファイル出力
 	if(output!=""){
 		#そのgram を含まない処理ファイルの欄に0を代入する
 		temp = 1
@@ -122,7 +117,7 @@ function file_output(){
 	}
 }
 
-function set_separator(init){
+function set_separator(init){#区切り記号の選択
 	print "タブ:1 改行:2 任意の記号:3"
 	getline val <"-"
 	while(val!=""&&val!=1&&val!=2&&val!=3){
@@ -148,8 +143,7 @@ function set_separator(init){
 	}
 }
 
-function chain(){
-	#そのgram を含まない処理ファイルの欄に0を代入する
+function chain(){#そのgramを含まない処理ファイルの欄に0を代入する
 	while(val2!=ARGV[f_name]){
 		output = output OFS "0"
 		f_name ++
@@ -244,9 +238,8 @@ BEGIN{
 			min = max
 		}
 	}else if(max==""){
-		max = min
+		max = min	#一方の値のみ入力された場合は同値を設定
 	}
-	#一方の値のみ入力された場合は同値を設定
 
 	while(min > max){	#適切な値が入力されているかどうか
 		print "最小値は最大値より小さいものを設定してください"
