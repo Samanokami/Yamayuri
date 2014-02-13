@@ -1,158 +1,6 @@
 #Unidicで形態素解析したデータを、直接、N-gramと品詞に分割する
-function joint(){#N-gramの結合
-	pre_item = gram_tail-n+1
-	for(item=gram_tail-n+1;item<=gram_tail;item++){
-	#gramの先頭から最後尾まで
-	#gramの先頭の初期値はposition、もしくはpre_itemの初期値
-		if(w_array2[stid,item]!=""){
-			part = part w_array2[stid,item] part_sep
-			#形態素情報を数珠つなぎ
-			keyword = keyword substr(sentence[stid][1],pre_item,item-pre_item+1) gram_sep
-			#形態素を数珠つなぎ
-			key_length += item-pre_item+1
-			#これまで何文字処理したかの合計
-			pre_item = item + 1
-			#次の形態素の先頭
-		}
-	}	
-}
-
-function initialize(){#変数の初期化
-	part = ""
-	keyword = ""
-	key_length = ""
-	pre_item = ""
-	w_tail = ""
-}
-
-function set_gram(){#Nの最大値と最小値を定義する
-	print "Nの最小値"
-	getline min <"-"
-	print "Nの最大値"
-	getline max <"-"
-}
-
-function set_span(){#スパンの最大値と最小値を定義する
-	print "スパンの最小値"
-	getline min <"-"
-	print "スパンの最大値"
-	getline max <"-"
-}
-function conv_s2n(item){
-	item = item * 2 + 1
-	return item
-}
-function gram_unit(){#N-gramの採取単位を定義する
-	if(unit==1||unit==2){
-	#文字単位or書字形単位
-		kanji_val = $3
-		kana_val = $4
-	}else if(unit==3){
-	#語彙素形単位
-		kanji_val = $6
-		kana_val = $5
-	}
-}
-
-function set_mode(){#原文ママ、もしくはカナモードの選択
-	if(mode==1){
-		val = kanji_val
-	}else if(mode==2){
-		if(kana_val!=""){
-			val = kana_val
-		}else{
-		#ヨミ出現形では記号が空白
-		#出現形を利用する
-			val = kanji_val
-		}
-	}
-}
-
-function input(){#N-gramの配列への格納
-	one_sentence = one_sentence val
-
-	w_tail += length(val)
-	#形態素の先頭からの区切り位置
-
-	w_array1[sid,w_tail] = length(val)
-	#形態素の字数
-
-	w_array2[sid,w_tail] = $7
-	#形態素の品詞情報
-}
-
-function file_output(){#ファイル出力
-	if(output!=""){
-		temp = 1
-		while(temp<=length(ARGV)-2){
-			output = output OFS "0"
-			temp++
-		}
-		split(output,output_array,OFS)
-		for(output_num=1;output_num<=ARGC+2;output_num++){
-			last_output = last_output output_array[output_num] OFS
-		}
-		#sub(",$","",last_output)
-		for(output_num=2;output_num<=ARGC+2;output_num++){
-			sum += output_array[output_num]
-		}
-		last_output = last_output sum
-		if(temp_gram_sep==OFS){
-			gsub("/",OFS,last_output)
-		}
-		if(temp_part_sep==OFS){
-			gsub("*",OFS,last_output)
-		}
-		if(answer2==1){
-			print last_output >> output_file_name
-		}else if(answer2==2){
-			print last_output > output_file_name
-		}else if(answer2==3){
-			print last_output
-		}
-		last_output = ""
-		output = ""
-		sum = ""
-	}
-}
-
-function set_separator(init){#区切り記号の選択
-	print "タブ:1 改行:2 任意の記号:3"
-	getline val <"-"
-	while(val!=""&&val!=1&&val!=2&&val!=3){
-		print "正しい数字を選択してください"
-		getline val <"-"
-	}
-	if(val==""){
-		val = init
-		pval = init
-	}else if(val==1){
-		val = "\t"
-		pval = "\\t"
-	}else if(val==2){
-		val = "\n"
-		pval = "\\n"
-	}else if(val==3){
-		print "記号を入力してください"
-		getline val <"-"
-		if(val==""){
-			val = ","
-		}
-		pval = val
-	}
-}
-
-function chain(){#そのgramを含まない処理ファイルの欄に0を代入する
-	while(val2!=ARGV[f_name]){
-		output = output OFS "0"
-		f_name ++
-	}
-	output = output OFS val3
-	pre_val1 = val1
-	f_name ++
-}
-
-
+#Unidicの出力は全てデフォルトのまま
+@include "functions_morph.awk"	#絶対パス、もしくは処理ファイルからの相対パスを指定する。
 BEGINFILE{
 	if(ERRNO){
 		print FILENAME "が見つかりません。"
@@ -171,12 +19,13 @@ BEGINFILE{
 }
 
 BEGIN{
-	for(item=1;item<=ARGC-1;item++){
+	#ファイルの処理順をソートする
+	for(item=1;item<=ARGC-1;item++){#ファイル名を入力順にファイル名配列に格納
 		file_name_array[item] = ARGV[item]
 	}
-	PROCINFO["sorted_in"] = "@ind_str_asc";
-	asort(file_name_array)
-	for(item=1;item<=ARGC-1;item++){
+	PROCINFO["sorted_in"] = "@val_str_asc";
+	asort(file_name_array)#ソート
+	for(item=1;item<=ARGC-1;item++){#書き戻し
 		ARGV[item] = file_name_array[item]
 	}
 	FS="\t"
@@ -184,7 +33,7 @@ BEGIN{
 	print "結果を保存しますか？"
 	print "追記する:1 上書き保存する:2 保存しない:3"
 	getline answer2 <"-"
-	while(answer2!=""&&answer2!=1&&answer2!=2&&answer2!=3){
+	while(answer2!=""&&answer2!=1&&answer2!=2&&answer2!=3){#例外処理
 		print "正しい数字を選択してください"
 		getline answer2 <"-"
 	}
@@ -192,8 +41,8 @@ BEGIN{
 		answer2=3
 	}else if(answer2==1||answer2==2){
 		print "どのファイルに保存しますか？"
-		getline output_file_name <"-"
-		while(output_file_name==""){
+		getline output_file_name <"-"#ファイル名指定
+		while(output_file_name==""){#空白ならもう一度
 			getline output_file_name <"-"
 		}
 	}
@@ -202,12 +51,12 @@ BEGIN{
 	print "グラムの単位"
 	print "書字形:1 語彙素:2"
 	getline unit <"-"
-	while(unit!=""&&unit!=2&&unit!=3){
+	while(unit!=""&&unit!=1&&unit!=2){#例外処理
 		print "正しい数字を選択してください"
 		getline unit <"-"
 	}
 	if(unit==""){
-		unit = 2
+		unit = 1
 	}
 	unit ++
 
@@ -219,33 +68,32 @@ BEGIN{
 	gram_sep = "/"	#単語の区切
 	pgram_sep = "/"
 
-	part_sep = "/"	#品詞情報の区切
+	part_sep = "/"	#品詞の区切記号
 	ppart_sep = "/"
 
 	print "原文:1 読み:2"
 	getline mode <"-"
-	while(mode!=""&&mode!=1&&mode!=2){	#適切な値が入力されているかどうか
+	while(mode!=""&&mode!=1&&mode!=2){#適切な値が入力されているかどうか
 		print "正しい数字を選択してください"
 		getline mode <"-"
 	}
-	if(mode==""){
-		mode = 1	#何も入力されなかった場合はテキストモードを設定
+	if(mode==""){#何も入力されなかった場合は原文モードを設定
+		mode = 1
 	}
 
 	set_span()
 	if(min==""){
-		if(max==""){	#いずれの値にも入力されなかった場合は1~10スパンを設定
+		if(max==""){#いずれの値にも入力されなかった場合は1~10スパンを設定
 			min = 1
 			max = 10
 		}else{
 			min = max
 		}
-	}else if(max==""){
+	}else if(max==""){#一方の値のみ入力された場合は同値を設定
 		max = min
 	}
-	#一方の値のみ入力された場合は同値を設定
 
-	while(min>max){	#適切な値が入力されているかどうか
+	while(min>max){#適切な値が入力されているかどうか
 		print "最小値は最大値より小さいものを設定してください"
 		set_span()
 	}
@@ -287,7 +135,8 @@ BEGIN{
 	}else{
 		print "スパン " pmin 
 	}
-	print	#データ本体との改行
+
+	print#データ本体との改行
 }
 
 {
@@ -419,7 +268,6 @@ END{
 						if(n<=w_array1[stid,gram_tail]){
 						#gram数が形態素の文字数より短い場合
 						#gramは一つの形態素から構成されている
-							#print substr(sentence[stid],position,n),w_array2[stid,gram_tail]
 							#gramの単純出力と対応する形態素情報の出力
 
 							arr_item = n SUBSEP substr(sentence[stid][1],position,n) OFS w_array2[stid,gram_tail] SUBSEP sentence[stid][2]
@@ -433,7 +281,6 @@ END{
 							sub(part_sep"$","",part)
 							sub(gram_sep"$","",keyword)
 							#数珠つなぎの最後の区切り記号を削る
-							#print keyword,part
 
 							arr_item = n SUBSEP keyword OFS part SUBSEP sentence[stid][2]
 							s_array[arr_item]++
@@ -442,7 +289,6 @@ END{
 							}
 					}else{
 						joint()
-						#joint2()
 						while(w_array2[stid,gram_tail]==""){
 						#gramの最後尾から、形態素の最後尾、つまり区切り位置までインクリメント
 							gram_tail++
@@ -451,7 +297,6 @@ END{
 						keyword = keyword substr(sentence[stid][1],pre_item,n-key_length)
 						#含まれる最後の形態素（gramには途中まで）の追加
 						#処理済みの文字数を控除
-						#print keyword,part
 
 						arr_item = n SUBSEP keyword OFS part SUBSEP sentence[stid][2]
 						s_array[arr_item]++
@@ -462,9 +307,11 @@ END{
 						#初期化すると大変なことになる
 					}
 				}
-			}else if(unit==2||unit==3){
+			}else if(unit==2||unit==3){#単語、形態素単位の場合
 				num = 0
+				#一文あたりの語数の初期化
 				for(item=1;item<=length(sentence[stid][1]);item++){
+					#文頭から文末まで
 					if(w_array2[stid,item]!=""){
 						num++
 						#語数は先に加算
@@ -482,8 +329,6 @@ END{
 					}
 					sub(part_sep"$","",part)
 					sub(gram_sep"$","",keyword)
-					#print keyword,part
-
 					arr_item = n SUBSEP keyword OFS part SUBSEP sentence[stid][2]
 					s_array[arr_item]++
 					initialize()
@@ -498,12 +343,11 @@ END{
 		files = files ARGV[name] OFS
 	}
 	sub(OFS"$","",files)
-	if(answer2==1){
-		#print NR >> output_file_name
-	}else if(answer2==2){
+	if(answer2==1){#追記だったらヘッダを出力しない
+	}else if(answer2==2){#新規or上書きだったらヘッダを出力
 		print NR > output_file_name
 		print files > output_file_name
-	}else if(answer2==3){
+	}else if(answer2==3){#標準出力なら語数とヘッダを出力
 		print NR
 		print files
 	}
@@ -512,19 +356,19 @@ END{
 	PROCINFO["sorted_in"]="@ind_str_asc";
 	for(item in s_array){
 		material =  item SUBSEP s_array[item]
-		split(material,item_array,SUBSEP)
-		last_array[num_gram][1] = item_array[2]
-		last_array[num_gram][2] = item_array[3]
-		last_array[num_gram][3] = item_array[4]
-		last_array[num_gram][4] = item_array[1]
+		split(material,item_array,SUBSEP)#s_array はソート済みなので、last_array もソート済み
+		last_array[num_gram][1] = item_array[1]	#Nの値
+		last_array[num_gram][2] = item_array[2]	#グラム、OFS、品詞情報
+		last_array[num_gram][3] = item_array[3]	#ファイル名
+		last_array[num_gram][4] = item_array[4]	#出現頻度
 		num_gram ++
 	}
 	num_gram = num_gram - 1
 	for(count=1;count<=num_gram;count++){
-		val1 = last_array[count][1]
-		val2 = last_array[count][2]
-		val3 = last_array[count][3]
-		val4 = last_array[count][4]
+		val1 = last_array[count][2]	#グラム、OFS、品詞情報
+		val2 = last_array[count][3]	#ファイル名
+		val3 = last_array[count][4]	#出現頻度
+		val4 = last_array[count][1]	#Nの値
 
 		if(val1==pre_val1){
 			chain()

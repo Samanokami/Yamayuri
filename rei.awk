@@ -34,13 +34,13 @@ BEGIN{
 		all_words = $1		#一行目の総語数
 	}else if(NR==2){
 	       files = $0
+		num_of_file = NF	#ファイル数
 	}else if($1==1){	#単語の出現頻度
 		word = $2 "-" $3	#単語と品詞情報の統合
-		for(num=4;num<=NF;num++){
+		for(num=4;num<=NF-2;num++){
 			count[word,num-3] = $num	#単語と出現頻度の配列
 			#count[単語-品詞情報,ファイル番号]
 		}
-		num_of_file = NF - 4	#ファイル数
 	}else if($1>1){		#共起頻度の一覧
 		span = ($1 - 1) / 2
 		split($2,node,"/")	#単語の配列
